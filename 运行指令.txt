@@ -1,0 +1,32 @@
+export PYTHONPATH=/home/wy/llampc-evolution:$PYTHONPATH
+
+python llampc/data/generate_training_data.py
+python llampc/mlp/train_mlp.py
+
+python llampc/mpc/optimize_hyperparams.py
+python llampc/mpc/optimize_hyperparams_ethzmobil_joint.py
+python llampc/mpc/optimize_hyperparams_joint_targeted.py --track ETHZMobil --n_trials 80 --seed 3846
+
+CUDA_VISIBLE_DEVICES=0 XLA_PYTHON_CLIENT_PREALLOCATE=false \
+python llampc/mpc/run_nmpc_orca_llampc_hybrid.py \
+  --track ETHZMobil \
+  --friction_style sudden \
+  --seed 3846 \
+  --no_video \
+  --output_file results.json
+
+python llampc/mpc/run_nmpc_orca_llampc_hybrid.py --seed 42  --enable_iterative --value_update_interval 3 --value_model_type nn --value_hidden_dims 128 --value_max_epoch 30 --output_file iterative_test.json
+python llampc/mpc/run_nmpc_orca_llampc_hybrid.py
+
+1、LLA-MPC
+python llampc/mpc/run_nmpc_orca_llampc_rt.py
+
+
+2、APACRace
+cd llampc/mpc
+python llampc/mpc/run_nmpc_apacrace.py
+
+
+3、Oracle
+cd llampc/mpc
+python llampc/mpc/run_nmpc_oracle.py
